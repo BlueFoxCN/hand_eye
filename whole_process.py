@@ -1,9 +1,8 @@
 from robot_kinematics import *
 from hand_eye import *
-from calibrate_order import *
+from calibrate import *
 
-# data_dir = "cali_data_filter"
-data_dir = "cali_data_filter"
+data_dir = "ir_imgs"
 
 # 1. get the gripper poses
 fname = '%s/calibrationValueConfig.txt' % data_dir
@@ -12,7 +11,6 @@ lines = f.readlines()
 bHg_list = []
 for line in lines:
 	angles = [float(e.strip()) for e in line.split(',')]
-	# print(angles)
 	T_list = g2b(angles)
 	T = np.identity(4)
 	for t in T_list:
@@ -20,7 +18,7 @@ for line in lines:
 	bHg_list.append(T)
 
 # 2. calibrate camera and get extrinsic matrix
-wHc_dict = calibrate("%s/cali_imgs" % data_dir, False)
+wHc_dict = calibrate("%s/mannual" % data_dir, flip=False, show_img=False, img_format='bmp')
 
 # 3. filter bHg and wHc
 wHc = []
@@ -34,9 +32,6 @@ bHg = np.array(bHg)
 bHg = np.transpose(bHg, (1, 2, 0))
 wHc = np.array(wHc)
 wHc = np.transpose(wHc, (1, 2, 0))
-
-# import pdb
-# pdb.set_trace()
 
 gHc = handEye(bHg[:,:,:], wHc[:,:,:])
 

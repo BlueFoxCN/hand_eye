@@ -7,25 +7,6 @@ import glob
 import matplotlib.pyplot as plt
 import pdb
 
-def get_inv_order(order):
-    leng = np.shape(order)[-1]
-    one_hot = np.eye(leng)[order]
-    one_hot_inv = inv(one_hot)
-    inv_order = np.argmax(one_hot_inv, 1)
-    return inv_order
-
-def change_order(arr, h_dst, w_dst, order_0, order_1):
-    if order_0 == 1:
-        arr = np.reshape(np.transpose(np.reshape(arr, [w_dst, h_dst, -1]), [1, 0, 2]), [h_dst * w_dst, -1])
-
-    if order_1 == 1:
-        arr = np.reshape(np.reshape(arr, [h_dst, w_dst, -1])[:,::-1], [h_dst * w_dst, -1])
-    if order_1 == 2:
-        arr = np.reshape(np.reshape(arr[::-1], [h_dst, w_dst, -1])[:,::-1], [h_dst * w_dst, -1])
-    if order_1 == 3:
-        arr = arr[::-1]
-    return arr
-
 def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=None):
 
     img_name_list = os.listdir(img_dir)
@@ -34,13 +15,13 @@ def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=No
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-    w = 7
+    w = 6
     h = 9
-    homo_k = 4
-    homo_size = (1440, 1080)
 
-    grid_width = 23.8
-    grid_height = 23.75
+    grid_width = 22.65
+    grid_height = 22.65
+    # grid_width = 23.8
+    # grid_height = 23.75
 
     objp = np.zeros((w * h, 3)).astype(np.float32)
     for i in range(w * h):
@@ -52,10 +33,6 @@ def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=No
     imgpoints = [] # points2D in img
     imgpoints_ori = [] # points2D in img
     order = []     # raw corner order by cv2
-
-    corner4 = np.array((objp[0], objp[6], objp[56], objp[62]))
-    pts_dst_uo = homo_k * corner4[:,:2] + (np.array(homo_size) - homo_k * objp[62][:2]) / 2
-
     idxes = []
 
     for i in range(img_num):
@@ -74,53 +51,13 @@ def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=No
             objpoints.append(objp)
             cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
 
-            corners_sq = np.squeeze(corners)
-
-            # determine order_0
-            d_70 = (corners_sq[7][0] - corners_sq[0][0]) ** 2 + (corners_sq[7][1] - corners_sq[0][1]) ** 2
-            d_76 = (corners_sq[7][0] - corners_sq[6][0]) ** 2 + (corners_sq[7][1] - corners_sq[6][1]) ** 2
-            order_0 = int(d_70 > d_76)
-            
-            # order the pts_dst according to pts_src
-            if order_0:
-                pts_src = np.array((corners_sq[0], corners_sq[8], corners_sq[54], corners_sq[62]))
-                sort = np.array([0, 2, 1, 3])
-            else:
-                pts_src = np.array((corners_sq[0], corners_sq[6], corners_sq[56], corners_sq[62]))
-                sort = np.array([0, 1, 2, 3])
-
-            pts_3d_src = np.concatenate((pts_src, np.ones([4, 1])), axis = 1)
-            sort = sort.astype(int)
-            sort_inv = get_inv_order(sort)
-            
-            pts_dst = pts_dst_uo[sort_inv]
-            pts_3d_dst = np.concatenate((pts_dst, np.ones([4, 1])), axis = 1)
-            
-            # Homography 
-            h_s2d, status = cv2.findHomography(pts_src, pts_dst)
-            img_homo = cv2.warpPerspective(img, h_s2d, (1440, 1080))
-
-            # Circle detection
-            # gray_homo = cv2.cvtColor(img_homo, cv2.COLOR_BGR2GRAY)
-            circles = cv2.HoughCircles(img_homo, cv2.HOUGH_GRADIENT, 1, 100, 
-                    param1 = 80, param2 = 30, minRadius = 30, maxRadius = 90)
-            circle = circles[0][0]
-            img_circle = cv2.circle(img_homo, (int(circle[0]), int(circle[1])), int(circle[2]), (0, 0, 255), 1, 8, 0)
-
-            # determine order_1
-            d_c4 = (pts_dst[:,0] - circle[0]) ** 2 + (pts_dst[:,1] - circle[1]) ** 2
-            order_1 = np.argmin(d_c4)
-            order.append([order_0, order_1])
-           
-            # change corners order
-            corners_order = change_order(corners_sq, h, w, order_0, order_1)[:, np.newaxis, :]
-            imgpoints.append(corners_order)
+            imgpoints.append(corners)
 
             # test corners order
             img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
             if show_img:
-                cv2.drawChessboardCorners(img_rgb, (w, h), corners_order, ret)
+                cv2.drawChessboardCorners(img_rgb, (w, h), corners, ret)
                 cv2.imshow('order', img_rgb)
                 cv2.waitKey(0)
 
