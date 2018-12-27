@@ -97,8 +97,8 @@ def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=No
         error = cv2.norm(imgpoints[i],imgpoints2, cv2.NORM_L2) / len(imgpoints2)
         total_error += error
 
-    print('total error: ', total_error / len(objpoints))
-    print('mtx:\n', mtx)
+    print('Camera calibration error: ', total_error / len(objpoints))
+    print('Camera matrix:\n', mtx)
     wHc_dict = {}
     for i, idx in enumerate(idxes):
         rvec = rvecs[i]

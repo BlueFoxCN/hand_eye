@@ -3,7 +3,15 @@ from quat2rot import *
 from rot2quat import *
 from transl import *
 
-def handEye(bHg, wHc):
+def handEye(bHg, wHc, start_idx=None, end_idx=None):
+
+    if start_idx is None:
+        start_idx = 0
+    if end_idx is None:
+        end_idx = bHg.shape[2]
+    bHg = bHg[:,:,start_idx:end_idx]
+    wHc = wHc[:,:,start_idx:end_idx]
+
     M = bHg.shape[2]            # number of camera positions
     K = int((M * M - M) / 2)    # number of camera position pairs
 
@@ -30,7 +38,7 @@ def handEye(bHg, wHc):
             k += 1
 
 
-    Pcg_ = np.linalg.lstsq(A, B)[0]
+    Pcg_, res1 = np.linalg.lstsq(A, B)[0:2]
 
     Pcg = 2 * Pcg_ / np.sqrt(1 + np.matmul(np.transpose(Pcg_), Pcg_))
 
@@ -47,9 +55,13 @@ def handEye(bHg, wHc):
             B[3*k:3*(k+1), 0] = np.matmul(Rcg[:3,:3], Hcij[:3,3]) - Hgij[:3,3]
             k += 1
 
-    Tcg = np.linalg.lstsq(A, B)[0]
+    Tcg, res2 = np.linalg.lstsq(A, B)[0:2]
 
     # print(Tcg)
+
+    print("Residuals:")
+    print(res1[0])
+    print(res2[0])
 
     gHc = np.matmul(transl(Tcg.squeeze()), Rcg)
 
