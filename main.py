@@ -7,6 +7,7 @@ from calibrate import *
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', required=True)
 parser.add_argument('--img_sub_dir', required=True)
+parser.add_argument('--show_img', action='store_true')
 parser.add_argument('--img_format', default='bmp')
 parser.add_argument('--start_idx', type=int)
 parser.add_argument('--end_idx', type=int)
@@ -26,7 +27,7 @@ for line in lines:
 	bHg_list.append(T)
 
 # 2. calibrate camera and get extrinsic matrix
-wHc_dict = calibrate("%s/%s" % (args.data_dir, args.img_sub_dir), show_img=False, img_format=args.img_format)
+wHc_dict = calibrate("%s/%s" % (args.data_dir, args.img_sub_dir), show_img=args.show_img, img_format=args.img_format)
 
 # 3. filter bHg and wHc
 wHc = []
@@ -47,7 +48,7 @@ gHc = handEye(bHg, wHc, start_idx=args.start_idx, end_idx=args.end_idx)
 print("Hand-eye calibration result:")
 
 for idx in range(4):
-    line_content = '[' + ', '.join([str(e) for e in gHc[idx]]) + ']'
+    line_content = '[' + ', '.join([str(round(e, 6)) for e in gHc[idx]]) + ']'
     if idx == 0:
         line_content = 'np.array([' + line_content + ','
     elif idx == 3:

@@ -38,6 +38,7 @@ def calibrate(img_dir, show_img=False, img_format='jpg', save_dir=None):
     for i in range(img_num):
         fname = os.path.join(img_dir, "%d.%s" % (i, img_format))
         img = cv2.imread(fname)
+        img_rgb = img.copy()
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray = img.copy()
 
@@ -50,9 +51,6 @@ def calibrate(img_dir, show_img=False, img_format='jpg', save_dir=None):
             cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
 
             imgpoints.append(corners)
-
-            # test corners order
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
             if show_img:
                 cv2.drawChessboardCorners(img_rgb, (w, h), corners, ret)
