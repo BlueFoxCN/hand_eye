@@ -26,7 +26,7 @@ for line in lines:
 	bHg_list.append(T)
 
 # 2. calibrate camera and get extrinsic matrix
-wHc_dict = calibrate("%s/%s" % (args.data_dir, args.img_sub_dir), flip=False, show_img=False, img_format=args.img_format)
+wHc_dict = calibrate("%s/%s" % (args.data_dir, args.img_sub_dir), show_img=False, img_format=args.img_format)
 
 # 3. filter bHg and wHc
 wHc = []

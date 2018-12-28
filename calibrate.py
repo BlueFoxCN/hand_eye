@@ -7,7 +7,7 @@ import glob
 import matplotlib.pyplot as plt
 import pdb
 
-def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=None):
+def calibrate(img_dir, show_img=False, img_format='jpg', save_dir=None):
 
     img_name_list = os.listdir(img_dir)
     img_idx_list = [int(e.split('.')[0]) for e in img_name_list]
@@ -38,8 +38,6 @@ def calibrate(img_dir, flip=False, show_img=False, img_format='jpg', save_dir=No
     for i in range(img_num):
         fname = os.path.join(img_dir, "%d.%s" % (i, img_format))
         img = cv2.imread(fname)
-        if flip == True:
-            img = cv2.flip(img, 0)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray = img.copy()
 

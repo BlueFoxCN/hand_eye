@@ -40,6 +40,8 @@ def handEye(bHg, wHc, start_idx=None, end_idx=None):
 
     Pcg_, res1 = np.linalg.lstsq(A, B)[0:2]
 
+    res1 = res1[0] / A.shape[0]
+
     Pcg = 2 * Pcg_ / np.sqrt(1 + np.matmul(np.transpose(Pcg_), Pcg_))
 
     Rcg = quat2rot(Pcg / 2)
@@ -57,11 +59,11 @@ def handEye(bHg, wHc, start_idx=None, end_idx=None):
 
     Tcg, res2 = np.linalg.lstsq(A, B)[0:2]
 
-    # print(Tcg)
+    res2 = res2[0] / A.shape[0]
 
     print("Residuals:")
-    print(res1[0])
-    print(res2[0])
+    print(res1)
+    print(res2)
 
     gHc = np.matmul(transl(Tcg.squeeze()), Rcg)
 
